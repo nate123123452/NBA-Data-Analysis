@@ -60,8 +60,39 @@ FROM DefensiveStats
 WHERE "PosRank" <= CEIL("PosCount" * 0.10)
 ORDER BY "Pos", "DeflectionsPerGame" DESC;
 ```
-
 ### Results
 See CSV File
 
+## Team Performance (Query 3)
 
+### SQL Query
+```sql
+WITH team_stats AS (
+  SELECT 
+    tm AS team,
+    ROUND(AVG(pts), 1) AS avg_ppg,
+    ROUND(AVG(trb), 1) AS avg_rpg,
+    ROUND(AVG(ast), 1) AS avg_apg,
+    ROUND(AVG(blk), 1) AS avg_bpg,
+    ROUND(AVG(stl), 1) AS avg_spg,
+    ROUND(AVG(fg_pct)*100, 1) AS fg_pct,
+    SUM(CASE WHEN pts > 20 THEN 1 ELSE 0 END) AS twenty_plus_ppg_players
+  FROM nba_player_stats
+  GROUP BY tm
+)
+SELECT 
+  team,
+  avg_ppg,
+  avg_rpg,
+  avg_apg,
+  CONCAT(fg_pct, '%') AS fg_percentage,
+  avg_spg || ' / ' || avg_bpg AS steals_blocks,
+  twenty_plus_ppg_players,
+  RANK() OVER (ORDER BY avg_ppg DESC) AS offensive_rank
+FROM team_stats
+ORDER BY avg_ppg DESC
+LIMIT 10;
+```
+
+### Results
+See CSV File
